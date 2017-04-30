@@ -9,6 +9,7 @@ const AppBar = ({ title, toggleSidebar }) => (
     <MuiAppBar
         title={title}
         onLeftIconButtonTouchTap={toggleSidebar}
+        iconClassNameRight="muidocs-icon-navigation-expand-more"
     />
 );
 
