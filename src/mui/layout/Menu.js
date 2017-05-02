@@ -24,24 +24,57 @@ const translatedResourceName = (resource, translate) =>
             inflection.humanize(inflection.pluralize(resource.name)),
     });
 
-const Menu = ({ hasDashboard, onMenuTap, resources, translate, logout }) => (
+const createMenu = (menuStruct) => {
+  for (let r of menuStruct) {
+
+  }
+
+  const menuStructKeys = Object.keys(menuStruct);
+
+
+}
+
+const Menu = ({ hasDashboard, onMenuTap, resources, translate, logout }) => {
+  const menuStruct = {};
+  for (let r of resources) {
+    const rMenuID = r.menuID;
+    if (!menuStruct[rMenuID]) {
+      menuStruct[rMenuID] = [];
+      menuStruct[rMenuID].items = [];
+    }
+    menuStruct[rMenuID].local = r.menuLocal;
+    menuStruct[rMenuID].items.push(r.name);
+  }
+  console.log('menuStruct');
+  console.log(menuStruct);
+  menuStruct.map(index => console.log(index));
+  return (
     <div style={styles.main}>
-        {hasDashboard && <DashboardMenuItem onTouchTap={onMenuTap}/>}
-        {resources
-            .filter(r => r.list)
-            .map(resource =>
-                <MenuItem
-                    key={resource.name}
-                    containerElement={<Link to={`/${resource.name}`} />}
-                    primaryText={translatedResourceName(resource, translate)}
-                    leftIcon={<resource.icon />}
-                    onTouchTap={onMenuTap}
-                />,
+      {hasDashboard && <DashboardMenuItem onTouchTap={onMenuTap}/>}
+      {
+        menuStruct.map(index =>
+        <MenuItem
+          key={index}
+          primaryText={menuStruct[index].local}
+          leftIcon={<resource.icon />}
+          menuItems={[
+            menuStruct[index].items.map(item =>
+              <MenuItem
+                key={item}
+                containerElement={<Link to={`/${menu + "/" + item}`}/>}
+                primaryText={translatedResourceName(item, translate)}
+                leftIcon={<resource.icon />}
+                onTouchTap={onMenuTap}
+              />
             )
-        }
-        {logout}
+          ]}
+        />
+        )
+      }
+      {logout}
     </div>
-);
+  );
+}
 
 Menu.propTypes = {
     hasDashboard: PropTypes.bool,

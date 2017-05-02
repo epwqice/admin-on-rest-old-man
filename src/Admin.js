@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import { combineReducers, createStore, compose, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
-import { Router, IndexRoute, Route, Redirect, hashHistory } from 'react-router';
+import { Router, IndexRoute, Route, Redirect, browserHistory } from 'react-router';
 import { syncHistoryWithStore, routerMiddleware, routerReducer } from 'react-router-redux';
 import { reducer as formReducer } from 'redux-form';
 import createSagaMiddleware from 'redux-saga';
@@ -35,8 +35,13 @@ const Admin = ({
     title = 'Admin on REST',
     loginPage,
     logoutButton,
+    appMenus,
 }) => {
     const resources = React.Children.map(children, ({ props }) => props);
+  console.log('children');
+    console.log(children);
+  console.log('resources');
+  console.log(resources);
     const reducer = combineReducers({
         admin: adminReducer(resources),
         locale: localeReducer(locale),
@@ -52,12 +57,12 @@ const Admin = ({
     };
     const sagaMiddleware = createSagaMiddleware();
     const store = createStore(reducer, undefined, compose(
-        applyMiddleware(sagaMiddleware, routerMiddleware(hashHistory)),
+        applyMiddleware(sagaMiddleware, routerMiddleware(browserHistory)),
         window.devToolsExtension ? window.devToolsExtension() : f => f,
     ));
     sagaMiddleware.run(saga);
 
-    const history = syncHistoryWithStore(hashHistory, store);
+    const history = syncHistoryWithStore(browserHistory, store);
     const firstResource = resources[0].name;
     const onEnter = authClient ?
         params => (nextState, replace, callback) => authClient(AUTH_CHECK, params)
@@ -80,13 +85,13 @@ const Admin = ({
         menu: <MenuComponent />,
         title,
         theme,
+        appMenus,
     })(appLayout || DefaultLayout);
-
     return (
         <Provider store={store}>
             <TranslationProvider messages={messages}>
                 <Router history={history}>
-                    {dashboard ? undefined : <Redirect from="/" to={`/${firstResource}`} />}
+                    {/*{dashboard ? undefined : <Redirect from="/" to={`/${firstResource}`} />}*/}
                     <Route path="/login" component={LoginPage} />
                     <Route path="/" component={Layout} resources={resources}>
                         {customRoutes && customRoutes()}
@@ -94,7 +99,7 @@ const Admin = ({
                         {resources.map(resource =>
                             <CrudRoute
                                 key={resource.name}
-                                path={resource.name}
+                                path={resource.category + '/' + resource.menuID + '/' + resource.name}
                                 list={resource.list}
                                 create={resource.create}
                                 edit={resource.edit}
@@ -129,6 +134,7 @@ Admin.propTypes = {
     title: PropTypes.string,
     locale: PropTypes.string,
     messages: PropTypes.object,
+    appMenus: PropTypes.array,
 };
 
 export default Admin;

@@ -6,7 +6,10 @@ const componentPropType = PropTypes.oneOfType([PropTypes.func, PropTypes.string]
 const Resource = () => <span>&lt;Resource&gt; elements are for configuration only and should not be rendered</span>;
 
 Resource.propTypes = {
-    name: PropTypes.string.isRequired,
+    categoryID: PropTypes.string.isRequired,
+    menuID: PropTypes.string.isRequired,
+    name: PropTypes.string,
+    menuLocal: PropTypes.string,
     list: componentPropType,
     create: componentPropType,
     edit: componentPropType,
