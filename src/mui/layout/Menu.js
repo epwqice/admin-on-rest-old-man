@@ -24,52 +24,43 @@ const translatedResourceName = (resource, translate) =>
             inflection.humanize(inflection.pluralize(resource.name)),
     });
 
-const createMenu = (menuStruct) => {
-  for (let r of menuStruct) {
-
-  }
-
-  const menuStructKeys = Object.keys(menuStruct);
-
-
-}
+// getSubMenu = () => {
+//   <MenuItem
+//     key={item}
+//     containerElement={<Link to={`/${menu + "/" + item}`}/>}
+//     primaryText={translatedResourceName(item, translate)}
+//     leftIcon={<resource.icon />}
+//     onTouchTap={onMenuTap}
+//   />
+// }
 
 const Menu = ({ hasDashboard, onMenuTap, resources, translate, logout }) => {
-  const menuStruct = {};
-  for (let r of resources) {
-    const rMenuID = r.menuID;
-    if (!menuStruct[rMenuID]) {
-      menuStruct[rMenuID] = [];
-      menuStruct[rMenuID].items = [];
-    }
-    menuStruct[rMenuID].local = r.menuLocal;
-    menuStruct[rMenuID].items.push(r.name);
-  }
-  console.log('menuStruct');
-  console.log(menuStruct);
-  menuStruct.map(index => console.log(index));
+  resources.filter(r => r.list)
+    .map((resource) => {
+            resources.filter(r => r.menuID === resource.menuID)
+              .map(subResource => console.log(subResource));
+    })
   return (
     <div style={styles.main}>
       {hasDashboard && <DashboardMenuItem onTouchTap={onMenuTap}/>}
       {
-        menuStruct.map(index =>
-        <MenuItem
-          key={index}
-          primaryText={menuStruct[index].local}
-          leftIcon={<resource.icon />}
-          menuItems={[
-            menuStruct[index].items.map(item =>
+        resources.filter(r => r.list)
+          .map((resource) => {
+            return (
               <MenuItem
-                key={item}
-                containerElement={<Link to={`/${menu + "/" + item}`}/>}
-                primaryText={translatedResourceName(item, translate)}
-                leftIcon={<resource.icon />}
-                onTouchTap={onMenuTap}
+                key={resource.name}
+                primaryText={resource.menuLocal}
               />
-            )
-          ]}
-        />
-        )
+            // resources.filter(r => r.menuID === resource.menuID)
+            //   .map(subResource => <MenuItem
+            //     key={subResource.name}
+            //     containerElement={<Link to={`/${subResource.menuID + '/' + subResource.name}`}/>}
+            //     primaryText={translatedResourceName(subResource, translate)}
+            //     leftIcon={<resource.icon />}
+            //     onTouchTap={onMenuTap}
+            //   />)
+            );
+          })
       }
       {logout}
     </div>
