@@ -19,13 +19,11 @@ import Logout from './mui/auth/Logout';
 import TranslationProvider from './i18n/TranslationProvider';
 import { AUTH_CHECK } from './auth';
 
+
 const Admin = ({
     appLayout,
     authClient,
     children,
-    customReducers = {},
-    customSagas = [],
-    customRoutes,
     dashboard,
     locale,
     messages = {},
@@ -37,22 +35,30 @@ const Admin = ({
     logoutButton,
     appMenus,
 }) => {
-    const resources = React.Children.map(children, ({ props }) => props);
-  console.log('children');
-    console.log(children);
-  console.log('resources');
-  console.log(resources);
+    let path;
+    const resources = [];
+    React.Children.forEach(children, (category) => {
+        path = `${category.props.name}`;
+        React.Children.forEach(category.props.children, (resourseGroup) => {
+            path += `/${resourseGroup.props.name}`;
+            React.Children.forEach(resourseGroup.props.children, (res) => {
+                path += `/${res.props.name}`;
+                res.props.path = path;
+                resources.push(res);
+            });
+
+        });
+    });
+    console.log(resources);
     const reducer = combineReducers({
         admin: adminReducer(resources),
         locale: localeReducer(locale),
         form: formReducer,
         routing: routerReducer,
-        ...customReducers,
     });
     const saga = function* rootSaga() {
         yield [
             crudSaga(restClient),
-            ...customSagas,
         ].map(fork);
     };
     const sagaMiddleware = createSagaMiddleware();
@@ -63,15 +69,15 @@ const Admin = ({
     sagaMiddleware.run(saga);
 
     const history = syncHistoryWithStore(browserHistory, store);
-    const firstResource = resources[0].name;
+    // const firstResource = resources[0].name;
     const onEnter = authClient ?
         params => (nextState, replace, callback) => authClient(AUTH_CHECK, params)
             .then(() => params && params.scrollToTop ? window.scrollTo(0, 0) : null)
-            .catch(e => {
+            .catch((e) => {
                 replace({
                     pathname: (e && e.redirectTo) || '/login',
                     state: { nextPathname: nextState.location.pathname },
-                })
+                });
             })
             .then(callback)
         :
@@ -91,15 +97,14 @@ const Admin = ({
         <Provider store={store}>
             <TranslationProvider messages={messages}>
                 <Router history={history}>
-                    {/*{dashboard ? undefined : <Redirect from="/" to={`/${firstResource}`} />}*/}
+                    {/* {dashboard ? undefined : <Redirect from="/" to={`/${firstResourcse}`} />}*/}
                     <Route path="/login" component={LoginPage} />
-                    <Route path="/" component={Layout} resources={resources}>
-                        {customRoutes && customRoutes()}
-                        {dashboard && <IndexRoute component={dashboard} onEnter={onEnter()} />}
+                    <Route path="/" component={Layout} categorys={children}>
+                        {/* {dashboard && <IndexRoute component={dashboard} onEnter={onEnter()} />}*/}
                         {resources.map(resource =>
                             <CrudRoute
                                 key={resource.name}
-                                path={resource.category + '/' + resource.menuID + '/' + resource.name}
+                                category={children}
                                 list={resource.list}
                                 create={resource.create}
                                 edit={resource.edit}
@@ -107,7 +112,7 @@ const Admin = ({
                                 remove={resource.remove}
                                 options={resource.options}
                                 onEnter={onEnter}
-                            />
+                            />,
                         )}
                     </Route>
                 </Router>
@@ -122,9 +127,6 @@ Admin.propTypes = {
     appLayout: componentPropType,
     authClient: PropTypes.func,
     children: PropTypes.node,
-    customSagas: PropTypes.array,
-    customReducers: PropTypes.object,
-    customRoutes: PropTypes.func,
     dashboard: componentPropType,
     loginPage: componentPropType,
     logoutButton: componentPropType,
