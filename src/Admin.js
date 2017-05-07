@@ -19,11 +19,33 @@ import Logout from './mui/auth/Logout';
 import TranslationProvider from './i18n/TranslationProvider';
 import { AUTH_CHECK } from './auth';
 
+const noShowElement = (resourseGroup) => {
+    const div = React.createElement('div', { key: resourseGroup.props.name, name: resourseGroup.props.name, group: true, showMenu: true });
+
+    return (
+        <Route path={resourseGroup.props.name} component={div} key={`key${resourseGroup.props.name}`} />
+    );
+};
+
+const createCrudRoute = (resProps, onEnter, parentName) => React.createElement(CrudRoute, {
+    key: resProps.name,
+    path: resProps.name,
+    list: resProps.list,
+    create: resProps.create,
+    edit: resProps.edit,
+    show: resProps.show,
+    remove: resProps.remove,
+    options: resProps.options,
+    onEnter,
+});
 
 const Admin = ({
     appLayout,
     authClient,
     children,
+    customReducers = {},
+    customSagas = [],
+    customRoutes,
     dashboard,
     locale,
     messages = {},
@@ -33,32 +55,43 @@ const Admin = ({
     title = 'Admin on REST',
     loginPage,
     logoutButton,
-    appMenus,
 }) => {
-    let path;
     const resources = [];
-    React.Children.forEach(children, (category) => {
-        path = `${category.props.name}`;
-        React.Children.forEach(category.props.children, (resourseGroup) => {
-            path += `/${resourseGroup.props.name}`;
-            React.Children.forEach(resourseGroup.props.children, (res) => {
-                path += `/${res.props.name}`;
-                res.props.path = path;
-                resources.push(res);
-            });
+    const childNode = [];
 
+    const onEnter = authClient ?
+    params => (nextState, replace, callback) => authClient(AUTH_CHECK, params)
+      .then(() => params && params.scrollToTop ? window.scrollTo(0, 0) : null)
+      .catch((e) => {
+          replace({
+              pathname: (e && e.redirectTo) || '/login',
+              state: { nextPathname: nextState.location.pathname },
+          });
+      })
+      .then(callback)
+    :
+    params => () => params && params.scrollToTop ? window.scrollTo(0, 0) : null;
+
+    React.Children.forEach(children, (resourseGroup) => {
+        childNode.push(noShowElement(resourseGroup));
+        React.Children.forEach(resourseGroup.props.children, (res) => {
+            res.props.group = resourseGroup.props.name;
+            res.props.groupLocal = resourseGroup.props.options && resourseGroup.props.options.label ? resourseGroup.props.options.label : resourseGroup.props.name;
+            childNode.push(createCrudRoute(res.props, onEnter, resourseGroup.props.name));
+            resources.push(res.props);
         });
     });
-    console.log(resources);
     const reducer = combineReducers({
         admin: adminReducer(resources),
         locale: localeReducer(locale),
         form: formReducer,
         routing: routerReducer,
+        ...customReducers,
     });
     const saga = function* rootSaga() {
         yield [
             crudSaga(restClient),
+            ...customSagas,
         ].map(fork);
     };
     const sagaMiddleware = createSagaMiddleware();
@@ -69,19 +102,8 @@ const Admin = ({
     sagaMiddleware.run(saga);
 
     const history = syncHistoryWithStore(browserHistory, store);
-    // const firstResource = resources[0].name;
-    const onEnter = authClient ?
-        params => (nextState, replace, callback) => authClient(AUTH_CHECK, params)
-            .then(() => params && params.scrollToTop ? window.scrollTo(0, 0) : null)
-            .catch((e) => {
-                replace({
-                    pathname: (e && e.redirectTo) || '/login',
-                    state: { nextPathname: nextState.location.pathname },
-                });
-            })
-            .then(callback)
-        :
-        params => () => params && params.scrollToTop ? window.scrollTo(0, 0) : null;
+    const firstResource = resources[0].name;
+
     const LoginPage = withProps({ title, theme, authClient })(loginPage || Login);
     const LogoutButton = withProps({ authClient })(logoutButton || Logout);
     const MenuComponent = withProps({ authClient, logout: <LogoutButton />, resources, hasDashboard: !!dashboard })(menu || Menu);
@@ -91,29 +113,19 @@ const Admin = ({
         menu: <MenuComponent />,
         title,
         theme,
-        appMenus,
     })(appLayout || DefaultLayout);
+
+
     return (
         <Provider store={store}>
             <TranslationProvider messages={messages}>
                 <Router history={history}>
-                    {/* {dashboard ? undefined : <Redirect from="/" to={`/${firstResourcse}`} />}*/}
+                    {dashboard ? undefined : <Redirect from="/" to={`/${firstResource}`} />}
                     <Route path="/login" component={LoginPage} />
-                    <Route path="/" component={Layout} categorys={children}>
-                        {/* {dashboard && <IndexRoute component={dashboard} onEnter={onEnter()} />}*/}
-                        {resources.map(resource =>
-                            <CrudRoute
-                                key={resource.name}
-                                category={children}
-                                list={resource.list}
-                                create={resource.create}
-                                edit={resource.edit}
-                                show={resource.show}
-                                remove={resource.remove}
-                                options={resource.options}
-                                onEnter={onEnter}
-                            />,
-                        )}
+                    <Route path="/" component={Layout} resources={resources}>
+                        {customRoutes && customRoutes()}
+                        {dashboard && <IndexRoute component={dashboard} onEnter={onEnter()} />}
+                        {childNode}
                     </Route>
                 </Router>
             </TranslationProvider>
@@ -127,6 +139,9 @@ Admin.propTypes = {
     appLayout: componentPropType,
     authClient: PropTypes.func,
     children: PropTypes.node,
+    customSagas: PropTypes.array,
+    customReducers: PropTypes.object,
+    customRoutes: PropTypes.func,
     dashboard: componentPropType,
     loginPage: componentPropType,
     logoutButton: componentPropType,
@@ -136,7 +151,6 @@ Admin.propTypes = {
     title: PropTypes.string,
     locale: PropTypes.string,
     messages: PropTypes.object,
-    appMenus: PropTypes.array,
 };
 
 export default Admin;

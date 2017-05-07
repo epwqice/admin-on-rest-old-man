@@ -70,12 +70,7 @@ class Layout extends Component {
             theme,
             title,
             width,
-            appMenus,
         } = this.props;
-      console.log('this.props');
-      console.log(this.props);
-      console.log('this.props.route');
-      console.log(this.props.route);
         const muiTheme = getMuiTheme(theme);
         if (!prefixedStyles.main) {
             // do this once because user agent never changes
@@ -91,7 +86,7 @@ class Layout extends Component {
             <MuiThemeProvider muiTheme={muiTheme}>
                 <div style={prefixedStyles.wrapper}>
                     <div style={prefixedStyles.main}>
-                        { width !== 1 && <AppBar title={title} appMenus={appMenus} theme={muiTheme}  />}
+                        { width !== 1 && <AppBar title={title} />}
                         <div className="body" style={width === 1 ? prefixedStyles.bodySmall : prefixedStyles.body}>
                             <div style={width === 1 ? prefixedStyles.contentSmall : prefixedStyles.content}>{children}</div>
                             <Sidebar theme={theme}>
@@ -122,7 +117,6 @@ Layout.propTypes = {
     title: PropTypes.string.isRequired,
     theme: PropTypes.object.isRequired,
     width: PropTypes.number,
-    rooter: PropTypes.object,
 };
 
 Layout.defaultProps = {

@@ -6,6 +6,7 @@ import pure from 'recompose/pure';
 import compose from 'recompose/compose';
 import DashboardMenuItem from './DashboardMenuItem';
 import translate from '../../i18n/translate';
+import ViewListIcon from 'material-ui/svg-icons/action/view-list';
 
 const styles = {
     main: {
@@ -13,6 +14,9 @@ const styles = {
         flexDirection: 'column',
         justifyContent: 'flex-start',
         height: '100%',
+    },
+    menu: {
+        margin: '0 0 0 1em',
     },
 };
 
@@ -24,48 +28,39 @@ const translatedResourceName = (resource, translate) =>
             inflection.humanize(inflection.pluralize(resource.name)),
     });
 
-// getSubMenu = () => {
-//   <MenuItem
-//     key={item}
-//     containerElement={<Link to={`/${menu + "/" + item}`}/>}
-//     primaryText={translatedResourceName(item, translate)}
-//     leftIcon={<resource.icon />}
-//     onTouchTap={onMenuTap}
-//   />
-// }
+const createMenu = (resources, translate, onMenuTap) => {
+    let groupName;
+    const childNode = [];
+    resources
+        .filter(r => r.list)
+        .map((resource) => {
+            if (resource.group !== groupName) {
+              groupName = resource.group;
+              childNode.push(React.createElement(MenuItem, {
+                    key: groupName,
+                    primaryText: resource.groupLocal,
 
-const Menu = ({ hasDashboard, onMenuTap, resources, translate, logout }) => {
-  resources.filter(r => r.list)
-    .map((resource) => {
-            resources.filter(r => r.menuID === resource.menuID)
-              .map(subResource => console.log(subResource));
-    })
-  return (
+                }));
+            }
+          childNode.push(React.createElement(MenuItem, {
+                key: resource.name,
+                primaryText: translatedResourceName(resource, translate),
+                containerElement: <Link to={`/${resource.name}`} />,
+                leftIcon: <resource.icon />,
+                onTouchTap: onMenuTap,
+            }));
+        });
+
+    return childNode;
+};
+
+const Menu = ({ hasDashboard, onMenuTap, resources, translate, logout }) => (
     <div style={styles.main}>
-      {hasDashboard && <DashboardMenuItem onTouchTap={onMenuTap}/>}
-      {
-        resources.filter(r => r.list)
-          .map((resource) => {
-            return (
-              <MenuItem
-                key={resource.name}
-                primaryText={resource.menuLocal}
-              />
-            // resources.filter(r => r.menuID === resource.menuID)
-            //   .map(subResource => <MenuItem
-            //     key={subResource.name}
-            //     containerElement={<Link to={`/${subResource.menuID + '/' + subResource.name}`}/>}
-            //     primaryText={translatedResourceName(subResource, translate)}
-            //     leftIcon={<resource.icon />}
-            //     onTouchTap={onMenuTap}
-            //   />)
-            );
-          })
-      }
-      {logout}
+        {hasDashboard && <DashboardMenuItem onTouchTap={onMenuTap} />}
+        {createMenu(resources, translate, onMenuTap)}
+        {logout}
     </div>
-  );
-}
+);
 
 Menu.propTypes = {
     hasDashboard: PropTypes.bool,
