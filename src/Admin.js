@@ -27,7 +27,7 @@ const noShowElement = (resourseGroup) => {
     );
 };
 
-const createCrudRoute = (resProps, onEnter, parentName) => React.createElement(CrudRoute, {
+const createCrudRoute = (resProps, onEnter) => React.createElement(CrudRoute, {
     key: resProps.name,
     path: resProps.name,
     list: resProps.list,
@@ -55,6 +55,8 @@ const Admin = ({
     title = 'Admin on REST',
     loginPage,
     logoutButton,
+    appMenus,
+    basePath,
 }) => {
     const resources = [];
     const childNode = [];
@@ -72,12 +74,15 @@ const Admin = ({
     :
     params => () => params && params.scrollToTop ? window.scrollTo(0, 0) : null;
 
+    const currentPath = basePath ? basePath : '';
+
     React.Children.forEach(children, (resourseGroup) => {
         childNode.push(noShowElement(resourseGroup));
         React.Children.forEach(resourseGroup.props.children, (res) => {
             res.props.group = resourseGroup.props.name;
             res.props.groupLocal = resourseGroup.props.options && resourseGroup.props.options.label ? resourseGroup.props.options.label : resourseGroup.props.name;
-            childNode.push(createCrudRoute(res.props, onEnter, resourseGroup.props.name));
+            console.log(`/${currentPath}/${res.props.name}`);
+            childNode.push(createCrudRoute(res.props, onEnter, resourseGroup.props.name, currentPath));
             resources.push(res.props);
         });
     });
@@ -103,16 +108,16 @@ const Admin = ({
 
     const history = syncHistoryWithStore(browserHistory, store);
     const firstResource = resources[0].name;
-
     const LoginPage = withProps({ title, theme, authClient })(loginPage || Login);
     const LogoutButton = withProps({ authClient })(logoutButton || Logout);
-    const MenuComponent = withProps({ authClient, logout: <LogoutButton />, resources, hasDashboard: !!dashboard })(menu || Menu);
+    const MenuComponent = withProps({ authClient, logout: <LogoutButton />, resources, hasDashboard: !!dashboard, basePath:currentPath })(menu || Menu);
     const Layout = withProps({
         authClient,
         logout: <LogoutButton />,
         menu: <MenuComponent />,
         title,
         theme,
+        appMenus,
     })(appLayout || DefaultLayout);
 
 
@@ -120,9 +125,9 @@ const Admin = ({
         <Provider store={store}>
             <TranslationProvider messages={messages}>
                 <Router history={history}>
-                    {dashboard ? undefined : <Redirect from="/" to={`/${firstResource}`} />}
+                    {dashboard ? undefined : <Redirect from={`/${currentPath}`} to={`/${currentPath}/${firstResource}`} />}
                     <Route path="/login" component={LoginPage} />
-                    <Route path="/" component={Layout} resources={resources}>
+                    <Route path={`/${currentPath}`} component={Layout} resources={resources}>
                         {customRoutes && customRoutes()}
                         {dashboard && <IndexRoute component={dashboard} onEnter={onEnter()} />}
                         {childNode}
@@ -151,6 +156,7 @@ Admin.propTypes = {
     title: PropTypes.string,
     locale: PropTypes.string,
     messages: PropTypes.object,
+    basePath: PropTypes.string,
 };
 
 export default Admin;
