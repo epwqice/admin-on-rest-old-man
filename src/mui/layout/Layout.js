@@ -70,6 +70,7 @@ class Layout extends Component {
             theme,
             title,
             width,
+            appMenus,
         } = this.props;
         const muiTheme = getMuiTheme(theme);
         if (!prefixedStyles.main) {
@@ -86,7 +87,7 @@ class Layout extends Component {
             <MuiThemeProvider muiTheme={muiTheme}>
                 <div style={prefixedStyles.wrapper}>
                     <div style={prefixedStyles.main}>
-                        { width !== 1 && <AppBar title={title} />}
+                        { width !== 1 && <AppBar title={title} appMenus={appMenus}/>}
                         <div className="body" style={width === 1 ? prefixedStyles.bodySmall : prefixedStyles.body}>
                             <div style={width === 1 ? prefixedStyles.contentSmall : prefixedStyles.content}>{children}</div>
                             <Sidebar theme={theme}>
@@ -117,6 +118,7 @@ Layout.propTypes = {
     title: PropTypes.string.isRequired,
     theme: PropTypes.object.isRequired,
     width: PropTypes.number,
+    appMenus: PropTypes.string,
 };
 
 Layout.defaultProps = {

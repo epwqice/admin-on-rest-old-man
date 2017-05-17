@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import { combineReducers, createStore, compose, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
-import { Router, IndexRoute, Route, Redirect, browserHistory } from 'react-router';
+import { Router, IndexRoute, Route, Redirect, hashHistory } from 'react-router';
 import { syncHistoryWithStore, routerMiddleware, routerReducer } from 'react-router-redux';
 import { reducer as formReducer } from 'redux-form';
 import createSagaMiddleware from 'redux-saga';
@@ -74,7 +74,8 @@ const Admin = ({
     :
     params => () => params && params.scrollToTop ? window.scrollTo(0, 0) : null;
 
-    const currentPath = basePath ? basePath : '';
+    // const currentPath = basePath ? basePath : '';
+  const currentPath = '';
 
     React.Children.forEach(children, (resourseGroup) => {
         childNode.push(noShowElement(resourseGroup));
@@ -101,12 +102,12 @@ const Admin = ({
     };
     const sagaMiddleware = createSagaMiddleware();
     const store = createStore(reducer, undefined, compose(
-        applyMiddleware(sagaMiddleware, routerMiddleware(browserHistory)),
+        applyMiddleware(sagaMiddleware, routerMiddleware(hashHistory)),
         window.devToolsExtension ? window.devToolsExtension() : f => f,
     ));
     sagaMiddleware.run(saga);
 
-    const history = syncHistoryWithStore(browserHistory, store);
+    const history = syncHistoryWithStore(hashHistory, store);
     const firstResource = resources[0].name;
     const LoginPage = withProps({ title, theme, authClient })(loginPage || Login);
     const LogoutButton = withProps({ authClient })(logoutButton || Logout);
@@ -125,7 +126,7 @@ const Admin = ({
         <Provider store={store}>
             <TranslationProvider messages={messages}>
                 <Router history={history}>
-                    {dashboard ? undefined : <Redirect from={`/${currentPath}`} to={`/${currentPath}/${firstResource}`} />}
+                    {dashboard ? undefined : <Redirect from={`/${currentPath}`} to={`/${firstResource}`} />}
                     <Route path="/login" component={LoginPage} />
                     <Route path={`/${currentPath}`} component={Layout} resources={resources}>
                         {customRoutes && customRoutes()}

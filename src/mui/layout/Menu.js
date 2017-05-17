@@ -28,9 +28,12 @@ const translatedResourceName = (resource, translate) =>
             inflection.humanize(inflection.pluralize(resource.name)),
     });
 
-const createMenu = (resources, translate, onMenuTap) => {
+const createMenu = (resources, translate, onMenuTap, basePath) => {
     let groupName;
     const childNode = [];
+
+  const currentPath = basePath ? basePath : '';
+
     resources
         .filter(r => r.list)
         .map((resource) => {
@@ -45,7 +48,7 @@ const createMenu = (resources, translate, onMenuTap) => {
           childNode.push(React.createElement(MenuItem, {
                 key: resource.name,
                 primaryText: translatedResourceName(resource, translate),
-                containerElement: <Link to={`/${resource.name}`} />,
+                containerElement: <Link to={"/" + resource.name} />,
                 leftIcon: <resource.icon />,
                 onTouchTap: onMenuTap,
             }));
@@ -54,10 +57,10 @@ const createMenu = (resources, translate, onMenuTap) => {
     return childNode;
 };
 
-const Menu = ({ hasDashboard, onMenuTap, resources, translate, logout }) => (
+const Menu = ({ hasDashboard, onMenuTap, resources, translate, logout, basePath }) => (
     <div style={styles.main}>
         {hasDashboard && <DashboardMenuItem onTouchTap={onMenuTap} />}
-        {createMenu(resources, translate, onMenuTap)}
+        {createMenu(resources, translate, onMenuTap, basePath)}
         {logout}
     </div>
 );
@@ -68,6 +71,7 @@ Menu.propTypes = {
     onMenuTap: PropTypes.func,
     resources: PropTypes.array.isRequired,
     translate: PropTypes.func.isRequired,
+    basePath: PropTypes.string,
 };
 
 Menu.defaultProps = {

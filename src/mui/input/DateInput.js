@@ -16,17 +16,17 @@ export const datify = input => {
 };
 
 class DateInput extends Component {
-    onChange = (_, date) => this.props.input.onChange(date);
+              onChange = (_, date) => this.props.input.onChange(date);
 
-    render() {
-        const { input, label, meta: { touched, error }, options, source, elStyle, resource } = this.props;
+              render() {
+              const { input, label, meta: { touched, error }, options, source, elStyle, resource } = this.props;
 
-        return (<DatePicker
-            {...input}
-            errorText={touched && error}
-            floatingLabelText={<FieldTitle label={label} source={source} resource={resource} />}
-            DateTimeFormat={Intl.DateTimeFormat}
-            container="inline"
+              return (<DatePicker
+              {...input}
+              errorText={touched && error}
+              floatingLabelText={<FieldTitle label={label} source={source} resource={resource} />}
+              DateTimeFormat={Intl.DateTimeFormat}
+              container="inline"
             autoOk
             value={datify(input.value)}
             onChange={this.onChange}
