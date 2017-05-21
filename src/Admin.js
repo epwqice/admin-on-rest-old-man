@@ -56,7 +56,6 @@ const Admin = ({
     loginPage,
     logoutButton,
     appMenus,
-    basePath,
 }) => {
     const resources = [];
     const childNode = [];
@@ -74,16 +73,13 @@ const Admin = ({
     :
     params => () => params && params.scrollToTop ? window.scrollTo(0, 0) : null;
 
-    // const currentPath = basePath ? basePath : '';
-  const currentPath = '';
 
     React.Children.forEach(children, (resourseGroup) => {
         childNode.push(noShowElement(resourseGroup));
         React.Children.forEach(resourseGroup.props.children, (res) => {
             res.props.group = resourseGroup.props.name;
             res.props.groupLocal = resourseGroup.props.options && resourseGroup.props.options.label ? resourseGroup.props.options.label : resourseGroup.props.name;
-            console.log(`/${currentPath}/${res.props.name}`);
-            childNode.push(createCrudRoute(res.props, onEnter, resourseGroup.props.name, currentPath));
+            childNode.push(createCrudRoute(res.props, onEnter, resourseGroup.props.name));
             resources.push(res.props);
         });
     });
@@ -111,7 +107,7 @@ const Admin = ({
     const firstResource = resources[0].name;
     const LoginPage = withProps({ title, theme, authClient })(loginPage || Login);
     const LogoutButton = withProps({ authClient })(logoutButton || Logout);
-    const MenuComponent = withProps({ authClient, logout: <LogoutButton />, resources, hasDashboard: !!dashboard, basePath:currentPath })(menu || Menu);
+    const MenuComponent = withProps({ authClient, logout: <LogoutButton />, resources, hasDashboard: !!dashboard })(menu || Menu);
     const Layout = withProps({
         authClient,
         logout: <LogoutButton />,
@@ -126,9 +122,9 @@ const Admin = ({
         <Provider store={store}>
             <TranslationProvider messages={messages}>
                 <Router history={history}>
-                    {dashboard ? undefined : <Redirect from={`/${currentPath}`} to={`/${firstResource}`} />}
+                    {dashboard ? undefined : <Redirect from={'/'} to={`/${firstResource}`} />}
                     <Route path="/login" component={LoginPage} />
-                    <Route path={`/${currentPath}`} component={Layout} resources={resources}>
+                    <Route path={'/'} component={Layout} resources={resources}>
                         {customRoutes && customRoutes()}
                         {dashboard && <IndexRoute component={dashboard} onEnter={onEnter()} />}
                         {childNode}
@@ -157,7 +153,7 @@ Admin.propTypes = {
     title: PropTypes.string,
     locale: PropTypes.string,
     messages: PropTypes.object,
-    basePath: PropTypes.string,
+    appMenus: PropTypes.array,
 };
 
 export default Admin;

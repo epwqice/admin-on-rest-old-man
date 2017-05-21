@@ -28,27 +28,25 @@ const translatedResourceName = (resource, translate) =>
             inflection.humanize(inflection.pluralize(resource.name)),
     });
 
-const createMenu = (resources, translate, onMenuTap, basePath) => {
+const createMenu = (resources, translate, onMenuTap) => {
     let groupName;
     const childNode = [];
-
-  const currentPath = basePath ? basePath : '';
 
     resources
         .filter(r => r.list)
         .map((resource) => {
             if (resource.group !== groupName) {
-              groupName = resource.group;
-              childNode.push(React.createElement(MenuItem, {
+                groupName = resource.group;
+                childNode.push(React.createElement(MenuItem, {
                     key: groupName,
                     primaryText: resource.groupLocal,
 
                 }));
             }
-          childNode.push(React.createElement(MenuItem, {
+            childNode.push(React.createElement(MenuItem, {
                 key: resource.name,
                 primaryText: translatedResourceName(resource, translate),
-                containerElement: <Link to={"/" + resource.name} />,
+                containerElement: <Link to={`/${resource.name}`} />,
                 leftIcon: <resource.icon />,
                 onTouchTap: onMenuTap,
             }));

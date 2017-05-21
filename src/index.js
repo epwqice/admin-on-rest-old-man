@@ -11,3 +11,5 @@ export FieldTitle from './util/FieldTitle';
 export Admin from './Admin';
 export CrudRoute from './CrudRoute';
 export Resource from './Resource';
+export Resource from './ResourceGroup';
+export Resource from './ResourceGroup';
